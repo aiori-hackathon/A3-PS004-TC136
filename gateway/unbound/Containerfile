@@ -1,0 +1,9 @@
+FROM alpine:3.23
+
+RUN apk add unbound --no-cache
+
+EXPOSE 53
+
+CMD ["unbound","-c", "/config/unbound.conf"]
+
+
