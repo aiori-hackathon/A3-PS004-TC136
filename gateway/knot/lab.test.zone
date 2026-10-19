@@ -11,11 +11,11 @@ $TTL 300
 	NS	dns1
 	MX	10 mail
 
-dns1	A	192.0.2.1
+dns1	A	10.53.0.2
 	AAAA	2001:DB8::1
 
-ota	A	192.0.2.2
+ota	A	10.53.0.4
 	AAAA	2001:DB8::2
 
-mail	A	192.0.2.3
+mail	A	10.53.0.5
 	AAAA	2001:DB8::3
