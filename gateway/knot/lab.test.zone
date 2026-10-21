@@ -14,7 +14,11 @@ $TTL 300
 dns1	A	10.53.0.2
 	AAAA	2001:DB8::1
 
+
 unsigned NS dns1
+signed NS dns1
+signed.lab.test. DS 47462 13 2 6f68e431507c701912ebd35dc2b7858807c806eab11d74d046bd4b613ebb36cb
+
 
 ota	A	10.53.0.4
 	AAAA	2001:DB8::2
