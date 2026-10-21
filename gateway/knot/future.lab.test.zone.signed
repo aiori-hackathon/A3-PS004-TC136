@@ -1,0 +1,58 @@
+; File written on Wed Oct 21 15:41:28 2026
+; dnssec_signzone version 9.18.50
+future.lab.test.	300	IN SOA	dns1.lab.test. admin.lab.test. (
+					2026101801 ; serial
+					21600      ; refresh (6 hours)
+					3600       ; retry (1 hour)
+					604800     ; expire (1 week)
+					86400      ; minimum (1 day)
+					)
+			300	RRSIG	SOA 13 3 300 (
+					20271021234640 20271021000000 48324 future.lab.test.
+					tphDH2KLZex7XXc9m5DnwDgF3ZXzqEZbIi4O
+					tHibp+vS3MDlGQst04ilzxqPOlSZ9badVCcF
+					olduJYm5VRqC6w== )
+			300	NS	dns1.lab.test.
+			300	RRSIG	NS 13 3 300 (
+					20271021234640 20271021000000 48324 future.lab.test.
+					95B+RvTS/SO2CHCtQOMOMHXb4c5vs4cOyWD5
+					1hjp7yaluw3KIvMilSdi+5ahy1GikN7owkdW
+					+0hFAWTwgq1p2Q== )
+			300	NSEC	ota.future.lab.test. NS SOA RRSIG NSEC DNSKEY
+			300	RRSIG	NSEC 13 3 300 (
+					20271021234640 20271021000000 48324 future.lab.test.
+					pxlrItCqxodJQ3tvFBbz1O+8OJqdj1BUCWPO
+					MlzLZjwdBkJrG2BappntUYUPPxWlEL0VmTwq
+					Sg/zaGQqdjrijw== )
+			300	DNSKEY	257 3 13 (
+					LzJPO4pGacAMImXT/D5yNlBmKw2VhUje9MqZ
+					CKuhXe8YDygrYjftZzyHlXYVYl0SJU6ca3e6
+					/Xq23SLCMXL8CA==
+					) ; KSK; alg = ECDSAP256SHA256 ; key id = 23167
+			300	DNSKEY	256 3 13 (
+					2dU3Caby68eVhV7RtUWBF6CGYj0ar8AKL43Y
+					TziDju5Zdu+zv2WD16dh0rZSEyVcEgs5U/V9
+					57ODwehSMFP6tQ==
+					) ; ZSK; alg = ECDSAP256SHA256 ; key id = 48324
+			300	RRSIG	DNSKEY 13 3 300 (
+					20271021234640 20271021000000 23167 future.lab.test.
+					vp3rKnMkuQKct6G2XZw3ZzCymK514PXod4H4
+					Tab1P9ixHnrxnBH4YYTf8JBb3Af/lQf5hP8F
+					gzt3xD94zQOi7g== )
+			300	RRSIG	DNSKEY 13 3 300 (
+					20271021234640 20271021000000 48324 future.lab.test.
+					gp/pBm8IKZNdb3iBWb67MicsUjoWOsz1azru
+					2zjTAwgQ+yyWHkeMbvkiksnMlXkWBPlFPnKp
+					Swz9f2xst+t5qQ== )
+ota.future.lab.test.	300	IN A	10.53.0.10
+			300	RRSIG	A 13 4 300 (
+					20271021234640 20271021000000 48324 future.lab.test.
+					RGFvJN/u1vKfWj7zZBzIiWwiSPTq03aRarf4
+					r/71O1OOCV8DgsBMatHqilqblyDa6G/XdEmQ
+					1jSwAAWybnOj+A== )
+			300	NSEC	future.lab.test. A RRSIG NSEC
+			300	RRSIG	NSEC 13 4 300 (
+					20271021234640 20271021000000 48324 future.lab.test.
+					ZkOgk+nKg5WMhD/ZjRPFp62X18Th/M+P4xjB
+					bv49a3bWQwkbC6itMlELIUCuDE7svrA+hCNA
+					YTIx6kyFrYrg+A== )
