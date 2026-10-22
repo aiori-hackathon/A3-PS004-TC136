@@ -1,0 +1,4 @@
+basicConstraints = critical,CA:FALSE
+keyUsage = critical, digitalSignature 
+extendedKeyUsage = clientAuth
+subjectAltName = DNS:esp32-1.lab.test
