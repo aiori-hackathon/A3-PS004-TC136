@@ -4,6 +4,7 @@
 #include "nvs_flash.h"
 #include "wifi.h"
 #include "certs.h"
+#include "dot.h"
 
 static const char *TAG = "client";
 
@@ -28,4 +29,6 @@ void app_main(void)
              (int)(ca_crt_end - ca_crt_start),
              (int)(client_crt_end - client_crt_start),
              (int)(client_key_end - client_key_start));
+
+    dot_handshake_test();
 }
