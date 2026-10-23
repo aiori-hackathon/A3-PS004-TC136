@@ -5,6 +5,7 @@
 #include "nvs_flash.h"
 #include "wifi.h"
 #include "dot.h"
+#include "policy.h"
 
 static const char *TAG = "client";
 
@@ -50,10 +51,13 @@ void app_main(void)
         int64_t ms = (esp_timer_get_time() - t0) / 1000;
         dns_verdict_t v = dns_verdict(&r);
 
-        if (v == VERDICT_SECURE || v == VERDICT_INSECURE) {
-            ESP_LOGI(TAG, "%-24s %-9s %d.%d.%d.%d  (rcode %d, ad %d, %lld ms)",
+        if (policy_accept(names[i], v)) {
+            ESP_LOGI(TAG, "%-24s %-9s use %d.%d.%d.%d  (rcode %d, ad %d, %lld ms)",
                      names[i], dns_verdict_str(v), r.ip[0], r.ip[1], r.ip[2], r.ip[3],
                      r.rcode, r.ad, ms);
+        } else if (v == VERDICT_INSECURE) {
+            ESP_LOGW(TAG, "%-24s %-9s refused: must be secure  (rcode %d, ad %d, %lld ms)",
+                     names[i], dns_verdict_str(v), r.rcode, r.ad, ms);
         } else {
             ESP_LOGW(TAG, "%-24s %-9s refused  (rcode %d, ede %d, %lld ms)",
                      names[i], dns_verdict_str(v), r.rcode, r.ede, ms);
