@@ -3,6 +3,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "wifi.h"
+#include "certs.h"
 
 static const char *TAG = "client";
 
@@ -21,4 +22,10 @@ void app_main(void)
         return;
     }
     ESP_LOGI(TAG, "wifi ready");
+
+    // embedded certs: print sizes only, never the key itself
+    ESP_LOGI(TAG, "ca.crt %d bytes, esp32-1.crt %d bytes, esp32-1.key %d bytes",
+             (int)(ca_crt_end - ca_crt_start),
+             (int)(client_crt_end - client_crt_start),
+             (int)(client_key_end - client_key_start));
 }
