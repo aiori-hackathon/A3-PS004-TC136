@@ -1,0 +1,30 @@
+# CD bit (checking disabled): can a client switch validation off? kdig through stunnel with the esp32-1 cert
+# 2026-10-27, Unbound 1.25.2, stunnel 5.76, Knot 3.6.1, kdig 3.5.8 (laptop, rootless podman, network podman1)
+# Unbound restarted before each part (cache cold)
+
+## before: ignore-cd-flag: no (Unbound default)
+
+$ kdig ... +cd A ota.badsig.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 23160
+;; Flags: qr rd ra cd; QUERY: 1; ANSWER: 1; AUTHORITY: 0; ADDITIONAL: 1
+;; EDE: 6 (DNSSEC Bogus): 'validation failure <ota.badsig.lab.test. A IN>: signature crypto failed from 10.53.0.2'
+ota.badsig.lab.test.	60	IN	A	10.53.0.11
+
+$ kdig ... A ota.badsig.lab.test   (no +cd, for comparison)
+;; ->>HEADER<<- opcode: QUERY; status: SERVFAIL; id: 58957
+;; Flags: qr rd ra; QUERY: 1; ANSWER: 0; AUTHORITY: 0; ADDITIONAL: 1
+;; EDE: 6 (DNSSEC Bogus): 'validation failure <ota.badsig.lab.test. A IN>: signature crypto failed from 10.53.0.2'
+
+## after: ignore-cd-flag: yes
+
+$ kdig ... +cd A ota.badsig.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: SERVFAIL; id: 58035
+;; Flags: qr rd ra cd; QUERY: 1; ANSWER: 0; AUTHORITY: 0; ADDITIONAL: 1
+;; EDE: 6 (DNSSEC Bogus): 'validation failure <ota.badsig.lab.test. A IN>: signature crypto failed from 10.53.0.2'
+
+$ kdig ... A ota.badsig.lab.test   (no +cd, for comparison)
+;; ->>HEADER<<- opcode: QUERY; status: SERVFAIL; id: 35672
+;; Flags: qr rd ra; QUERY: 1; ANSWER: 0; AUTHORITY: 0; ADDITIONAL: 1
+;; EDE: 6 (DNSSEC Bogus): 'validation failure <ota.badsig.lab.test. A IN>: signature crypto failed from 10.53.0.2'
+
+# the cd flag in replies is the query's CD bit echoed back; status and the missing A record are what matter
