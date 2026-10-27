@@ -1,0 +1,37 @@
+name: dnssec 
+
+mgmt: 
+    network: clab1
+    ipv4-subnet: 10.54.0.0/24
+
+topology:
+    nodes: 
+        knot:
+            kind: linux 
+            image: docker.io/cznic/knot:latest
+            mgmt-ipv4: 10.54.0.2
+            binds:
+                - ../gateway/knot:/config:z
+            volumes:
+                - knot-storage:/storage
+            cmd: knotd -c /config/knot.conf
+        unbound:
+            kind: linux 
+            image: lab-unbound:latest
+            mgmt-ipv4: 10.54.0.3
+            binds:
+                - ../gateway/unbound:/config:z
+            
+        stunnel:
+            kind: linux
+            image: lab-stunnel:latest
+            mgmt-ipv4: 10.54.0.15
+            binds:
+                - ../gateway/stunnel:/config:z
+                - ../gateway/pki/gateway.crt:/pki/gateway.crt:z
+                - ../gateway/pki/gateway.key:/pki/gateway.key:z
+                - ../gateway/pki/ca.crt:/pki/ca.crt:z
+            ports:
+                - 8530:853/tcp
+
+    
