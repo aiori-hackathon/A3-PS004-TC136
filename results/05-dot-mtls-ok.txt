@@ -1,0 +1,40 @@
+# mTLS ok: kdig with the esp32-1 cert (signed by LAB CA)
+# 2026-10-27, Unbound 1.25.2, stunnel 5.76, Knot 3.6.1, kdig 3.5.8 (laptop, rootless podman, network podman1)
+
+$ kdig @127.0.0.1 -p 8530 +tls +tls-ca=ca.crt +tls-hostname=gateway.lab.test +tls-certfile=esp32-1.crt +tls-keyfile=esp32-1.key A ota.lab.test
+;; TLS session (TLS1.3)-(ECDHE-X25519)-(ECDSA-SECP256R1-SHA256)-(AES-256-GCM)
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 49039
+;; Flags: qr rd ra ad; QUERY: 1; ANSWER: 1; AUTHORITY: 0; ADDITIONAL: 1
+
+;; EDNS PSEUDOSECTION:
+;; Version: 0; flags: ; UDP size: 1232 B; ext-rcode: NOERROR
+
+;; QUESTION SECTION:
+;; ota.lab.test.       		IN	A
+
+;; ANSWER SECTION:
+ota.lab.test.       	297	IN	A	10.53.0.4
+
+;; Received 57 B
+;; Time 2026-10-27 13:10:36 IST
+;; From 127.0.0.1@8530(TLS) in 10.0 ms
+
+# stunnel log
+2026.10.27 07:40:36 LOG5[16]: Service [dot] accepted connection from 10.53.0.15:54672
+2026.10.27 07:40:36 LOG6[16]: Peer certificate required
+2026.10.27 07:40:36 LOG6[16]: Certificate accepted at depth=1: CN=LAB CA
+2026.10.27 07:40:36 LOG6[16]: CERT: No subject checks configured
+2026.10.27 07:40:36 LOG5[16]: Certificate accepted at depth=0: CN=esp32-1
+2026.10.27 07:40:36 LOG6[16]: Session id: C1081D6FB5063EB36154C22D2AD2BE9089D2E80DAB756066B187313521D6D710
+2026.10.27 07:40:36 LOG6[16]: Session id: CE673F683E3B0C570AFA51CCDBB2D473363571E828A339DE53196F86BCE76A4C
+2026.10.27 07:40:36 LOG6[16]: TLS accepted: new session negotiated
+2026.10.27 07:40:36 LOG6[16]: TLSv1.3 ciphersuite: TLS_AES_256_GCM_SHA384 (256-bit encryption)
+2026.10.27 07:40:36 LOG6[16]: Peer temporary key: X25519, 253 bits
+2026.10.27 07:40:36 LOG6[16]: s_connect: connecting 10.53.0.3:53
+2026.10.27 07:40:36 LOG5[16]: s_connect: connected 10.53.0.3:53
+2026.10.27 07:40:36 LOG6[16]: persistence: 10.53.0.3:53 cached
+2026.10.27 07:40:36 LOG5[16]: Service [dot] connected remote server from 10.53.0.15:47194
+2026.10.27 07:40:36 LOG6[16]: TLS closed (SSL_read)
+2026.10.27 07:40:36 LOG6[16]: Read socket closed (readsocket)
+2026.10.27 07:40:36 LOG6[16]: SSL_shutdown successfully sent close_notify alert
+2026.10.27 07:40:36 LOG5[16]: Connection closed: 59 byte(s) sent to TLS, 130 byte(s) sent to socket

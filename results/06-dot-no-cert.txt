@@ -1,0 +1,16 @@
+# no client cert: stunnel must refuse before any DNS reaches Unbound
+# 2026-10-27, Unbound 1.25.2, stunnel 5.76, Knot 3.6.1, kdig 3.5.8 (laptop, rootless podman, network podman1)
+
+$ kdig @127.0.0.1 -p 8530 +tls +tls-ca=ca.crt +tls-hostname=gateway.lab.test A ota.lab.test
+;; WARNING: TLS, failed to receive reply (A TLS fatal alert has been received.)
+;; WARNING: can't receive reply from 127.0.0.1@8530(TLS)
+;; ERROR: failed to query server 127.0.0.1@8530(TCP)
+
+# stunnel log
+2026.10.27 07:40:38 LOG5[17]: Service [dot] accepted connection from 10.53.0.15:54684
+2026.10.27 07:40:38 LOG6[17]: Peer certificate required
+2026.10.27 07:40:38 LOG3[17]: SSL_accept: tls_process_client_certificate@ssl/statem/statem_srvr.c:3764: error:0A0000C7:SSL routines::peer did not return a certificate
+2026.10.27 07:40:38 LOG5[17]: Connection reset/closed: 0 byte(s) sent to TLS, 0 byte(s) sent to socket
+
+# Unbound log in the same window (empty = nothing got through)
+(nothing)
