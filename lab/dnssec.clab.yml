@@ -10,6 +10,9 @@ topology:
             kind: linux 
             image: docker.io/cznic/knot:latest
             mgmt-ipv4: 10.54.0.2
+            ports: 
+                - 5300:53/tcp
+                - 5300:53/udp
             binds:
                 - ../gateway/knot:/config:z
             volumes:
