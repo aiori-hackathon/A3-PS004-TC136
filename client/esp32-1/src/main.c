@@ -6,6 +6,7 @@
 #include "wifi.h"
 #include "dot.h"
 #include "policy.h"
+#include "bench.h"
 
 static const char *TAG = "client";
 
@@ -37,6 +38,12 @@ void app_main(void)
         return;
     }
     ESP_LOGI(TAG, "wifi ready");
+
+#ifdef BENCH_ROUNDS
+    // benchmark envs: measure instead of the normal run
+    bench_run(names, sizeof(names) / sizeof(names[0]));
+    return;
+#endif
 
     if (dot_connect() != ESP_OK) {
         ESP_LOGE(TAG, "no gateway, stopping");
