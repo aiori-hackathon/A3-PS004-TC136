@@ -1,0 +1,58 @@
+; File written on Sun Nov  1 02:42:24 2026
+; dnssec_signzone version 9.18.50
+nokey.lab.test.		300	IN SOA	dns1.lab.test. admin.lab.test. (
+					2026101801 ; serial
+					21600      ; refresh (6 hours)
+					3600       ; retry (1 hour)
+					604800     ; expire (1 week)
+					86400      ; minimum (1 day)
+					)
+			300	RRSIG	SOA 13 3 300 (
+					20271020000000 20261020000000 29169 nokey.lab.test.
+					sveWQXskM8fQOZtTVOcDK4K/g2dGQzHHPmzn
+					oak6Pto7tGmweDk1aYMBIldKRktcsiYGnJ9M
+					tYFsDAxIAQcqWQ== )
+			300	NS	dns1.lab.test.
+			300	RRSIG	NS 13 3 300 (
+					20271020000000 20261020000000 29169 nokey.lab.test.
+					b8wx1uxubAPuFv62cjHLBKI/5AbEpFCYFdB2
+					2UdTyZiTylGLqUpSgIreJWnWVzqUvDrTaeLS
+					vYf2hF23yvCmWQ== )
+			300	NSEC	ota.nokey.lab.test. NS SOA RRSIG NSEC DNSKEY
+			300	RRSIG	NSEC 13 3 300 (
+					20271020000000 20261020000000 29169 nokey.lab.test.
+					03v7CdSy2YkKWJCBQl0LVf1ieF2CrJNJrJ5w
+					u4CiTpjgtAZ6raaLmTLmq3T1I/0T2SUqbQu2
+					uS2eGkLJULOVTQ== )
+			300	DNSKEY	256 3 13 (
+					9v4axBxWI0n87beJaLo4ptTsvic3eA2OmVPt
+					SwfyekmtnPoQCzZ0IvJ1lYHp5LwJ5QERp1Xk
+					s3NIRInZRvt3rQ==
+					) ; ZSK; alg = ECDSAP256SHA256 ; key id = 29169
+			300	DNSKEY	257 3 13 (
+					rfLK1gbt0YyU/ZVW+GTRBHYepUlelWr51sPD
+					WofMbu5UBS8hcUGYVPyLd2j+jShkgLvS2nHE
+					/BqjMMIKLLAk7w==
+					) ; KSK; alg = ECDSAP256SHA256 ; key id = 24275
+			300	RRSIG	DNSKEY 13 3 300 (
+					20271020000000 20261020000000 29169 nokey.lab.test.
+					0P2w/+d5gybZEIrE6WFgjQw1G5e26e7oh1Jb
+					bGX/SUuZgnhtoEyYaqZ2GoDQrgZKhKkZiNXT
+					pEQ8xfOD6lwSyw== )
+			300	RRSIG	DNSKEY 13 3 300 (
+					20271020000000 20261020000000 24275 nokey.lab.test.
+					lu25/U2R6gMWWiX1NTMCJDu3lkdpH1btZ22N
+					3p3qs5LJSCWQ7MR7MlF/dhW1uL8WMpid3kAz
+					fqJDzK0uhRMuYw== )
+ota.nokey.lab.test.	300	IN A	10.53.0.17
+			300	RRSIG	A 13 4 300 (
+					20271020000000 20261020000000 29169 nokey.lab.test.
+					KdBns9LrxvA02N1XHKeFHLuWwhuuJ4xZcJxt
+					xD94rmFj9Gjq2j1kPsbuYH2t4VTMCJcKFA0o
+					jrMZWOIaqCJ5JQ== )
+			300	NSEC	nokey.lab.test. A RRSIG NSEC
+			300	RRSIG	NSEC 13 4 300 (
+					20271020000000 20261020000000 29169 nokey.lab.test.
+					Qj3RnNM+VLJFrCpRR5JfKz1A+5bYKL4lKQNl
+					FEEDFjagniN8eZVVsv5ZnY2kzUo8P5L0VHwS
+					vKb5a3qO1lDnVw== )
