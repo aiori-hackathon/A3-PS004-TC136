@@ -1,0 +1,58 @@
+# DOWNGRADE: the parent publishes a DS with an algorithm no validator knows -> the zone looks UNSIGNED (insecure), not bogus
+# mode 1 (lab): kdig -> stunnel (127.0.0.1:8530, mTLS, esp32-1 cert) -> Unbound 1.25.2 -> Knot 3.6.1, Unbound restarted just before (cache cold)
+# 2026-11-01 02:17 IST
+# unknownalg.lab.test is fully signed (hand-signed with dnssec-signzone): DNSKEYs use algorithm 8 (RSASHA256)
+# zone's own keys : DNSKEY 256 3 8;DNSKEY 257 3 8;
+# DS in the parent: unknownalg.lab.test. IN DS 26036 80 2 91BD464180FCFB62A9184B22D690C82D8DA0877A8C    <- algorithm 80 = unassigned, no validator supports it
+# RFC 4035 section 5.2: if no DS algorithm is supported, treat the zone as insecure (like an unsigned one)
+# CONTROL (section 4): the same zone with the DS algorithm set to 8 gives 'ad'. Only the algorithm number differs
+
+## 1. through the gateway, same lookup for a normally signed zone (baseline) and the downgraded one
+
+$ kdig ... A ota.signed.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 50569
+;; Flags: qr rd ra ad; QUERY: 1; ANSWER: 1; AUTHORITY: 0; ADDITIONAL: 1
+ota.signed.lab.test.	300	IN	A	10.53.0.8
+
+$ kdig ... A ota.unknownalg.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 7120
+;; Flags: qr rd ra; QUERY: 1; ANSWER: 1; AUTHORITY: 0; ADDITIONAL: 1
+ota.unknownalg.lab.test.	300	IN	A	10.53.0.16
+
+## 2. Knot directly (port 5300): the zone is served, and the DS is there
+
+$ kdig @127.0.0.1 -p 5300 DS unknownalg.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 46087
+unknownalg.lab.test.	300	IN	DS	26036 80 2 91BD464180FCFB62A9184B22D690C82D8DA0877A8C38336E786AACB2AF0675E2
+
+$ kdig @127.0.0.1 -p 5300 A ota.unknownalg.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 33447
+;; Flags: qr aa rd; QUERY: 1; ANSWER: 1; AUTHORITY: 0; ADDITIONAL: 1
+ota.unknownalg.lab.test.	300	IN	A	10.53.0.16
+
+## 3. Unbound's log for this run (no 'validation failure' line: from Unbound's point of view nothing failed)
+[1793479661] unbound[1:0] info: 10.54.0.15 ota.signed.lab.test. A IN
+[1793479661] unbound[1:0] info: 10.54.0.15 ota.signed.lab.test. A IN NOERROR 0.006781 0 64
+[1793479661] unbound[1:0] info: 10.54.0.15 ota.unknownalg.lab.test. A IN
+[1793479661] unbound[1:0] info: 10.54.0.15 ota.unknownalg.lab.test. A IN NOERROR 0.000604 0 68
+
+# read it like this:
+# - ota.signed: NOERROR + ad  -> the gateway validates normally
+# - ota.unknownalg: NOERROR, IP returned, NO ad, no EDE, no error in the log -> INSECURE
+# - a gateway that only looks for failures would pass this answer on. Only a device that REQUIRES ad for this name refuses it
+#   (firmware: ota.unknownalg.lab.test is on the must-be-secure list, see the ESP32 run)
+
+## 4. CONTROL: the SAME zone, only the DS algorithm changed 80 -> 8 (everything else identical; Unbound restarted, cache cold)
+# DS served by Knot: unknownalg.lab.test. 300 IN DS 26036 8 2 91BD464180FCFB62A91
+
+$ kdig ... A ota.unknownalg.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 4503
+;; Flags: qr rd ra ad; QUERY: 1; ANSWER: 1; AUTHORITY: 0; ADDITIONAL: 1
+ota.unknownalg.lab.test.	300	IN	A	10.53.0.16
+
+# Unbound's log
+[1793479839] unbound[1:0] info: 10.54.0.15 ota.unknownalg.lab.test. A IN
+[1793479839] unbound[1:0] info: 10.54.0.15 ota.unknownalg.lab.test. A IN NOERROR 0.007207 0 68
+
+# A/B result: DS algorithm 8 -> NOERROR + ad (SECURE). DS algorithm 80 -> NOERROR, no ad (INSECURE). Nothing else changed,
+# so the unknown algorithm number alone turns a signed zone into one that looks unsigned (the original DS line was restored afterwards).
