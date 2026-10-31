@@ -1,0 +1,30 @@
+# GATEWAY DOWN, MODE 2: stunnel stopped on the Pi, the ESP32 must refuse everything and never fall back to plain DNS
+# ESP32-S3 (firmware: pio run -e pi) -> Pi 10.174.132.118:853. 2026-10-31, phone hotspot "OnePlus 11 5G"
+# on the Pi: sudo systemctl stop stunnel@dot (Unbound stays up). The ESP32 was reset after the stop; its exact time was not logged
+
+## Pi (journalctl)
+2026-10-31T20:40:55 systemd[1]: Stopping stunnel@dot.service - TLS tunnel for network daemons - per-config-file service...
+2026-10-31T20:40:55 stunnel[612]: LOG6[ui]: Service threads terminated
+2026-10-31T20:40:55 stunnel4[612]: 2026.10.31 20:40:55 LOG6[ui]: Service threads terminated
+2026-10-31T20:40:55 systemd[1]: stunnel@dot.service: Deactivated successfully.
+2026-10-31T20:40:55 systemd[1]: Stopped stunnel@dot.service - TLS tunnel for network daemons - per-config-file service.
+state: stunnel@dot inactive, nothing listening on :853: 0
+
+## ESP32 serial
+I (4179) wifi: got ip 10.174.132.171
+I (4179) client: wifi ready
+I (4179) dot: connecting to 10.174.132.118:853 as gateway.lab.test
+E (4229) esp-tls: [sock=54] delayed connect error: Connection reset by peer
+E (4229) esp-tls: Failed to open new connection
+E (4229) dot: mTLS handshake FAILED after 44 ms
+E (4229) client: no gateway, stopping
+I (4239) main_task: Returned from app_main()
+
+# the Pi answered at once with a TCP reset (nothing listens on :853): the device refused, no DNS query was sent
+# lwIP reports a refused connection (RST) as "Connection reset by peer"
+# no fallback: the ESP32 has no code path that sends plain DNS to anything
+
+## the three ways the device fails closed (all end in "no gateway, stopping")
+# connect() times out after 5 s (select() timeout) -> gateway unreachable (see results/15 notes: laptop on another Wi-Fi)
+# connect() reset after ~44 ms                     -> gateway host up, service stopped  <- this file
+# TLS error (-0x2700) after ~1.1 s                 -> a gateway answered but its certificate is not trusted (results/15)
