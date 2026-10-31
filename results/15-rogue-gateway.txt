@@ -1,0 +1,46 @@
+# ROGUE GATEWAY: the laptop plays the gateway with a cert signed by a FAKE "LAB CA" (same CN, same SAN, same issuer name)
+# ESP32-S3 (firmware: pio run -e rogue, points at laptop 10.174.132.72:8531) -> rogue stunnel container (docker, lab-stunnel image)
+# 2026-10-31, phone hotspot "OnePlus 11 5G". Fake PKI from tests/make-fakeca.sh, keys kept outside the repo (~/fakeca)
+# an earlier run printed "select() timeout" after 5 s: the laptop was on another Wi-Fi, so nothing connected. That is NOT a rejection and is not part of this result
+
+## rogue-stunnel.conf (no CAfile / verifyChain: the attacker accepts anyone)
+; global: how stunnel itself runs
+foreground = yes
+pid =
+debug = info
+; one guarded door: DoT in, plain DNS out to Unbound
+[rouge-stunnel]
+accept = 0.0.0.0:853
+connect = 127.0.0.1:9
+; the gateway's own passport + signature
+cert = /pki/fake-gateway.crt
+key = /pki/fake-gateway.key
+sslVersionMin = TLSv1.2
+
+## 1. kdig as the victim (real ca.crt, real esp32-1 cert), against the rogue on :8531
+$ kdig @127.0.0.1 -p 8531 +tls +tls-ca=ca.crt +tls-hostname=gateway.lab.test +tls-certfile=esp32-1.crt +tls-keyfile=esp32-1.key A ota.lab.test
+;; WARNING: TLS, handshake failed (Error in the certificate.)
+;; ERROR: failed to query server 127.0.0.1@8531(TCP)
+
+## 2. ESP32 serial (connected in about 1 s, then refused the certificate)
+I (4159) client: wifi ready
+I (4159) dot: connecting to 10.174.132.72:8531 as gateway.lab.test
+E (5299) esp-tls-mbedtls: mbedtls_ssl_handshake returned -0x2700
+E (5299) esp-tls: Failed to open new connection
+E (5309) dot: mTLS handshake FAILED after 1139 ms
+E (5309) client: no gateway, stopping
+# -0x2700 = MBEDTLS_ERR_X509_CERT_VERIFY_FAILED (esp-idf components/mbedtls/mbedtls/include/mbedtls/x509.h)
+# no DNS query was sent: the device failed closed
+
+## 3. The rogue's own log: only the ESP32's connections (container clock is UTC, 10.174.132.171 = the ESP32)
+2026.10.31 15:07:50 LOG5[1]: Service [rouge-stunnel] accepted connection from 10.174.132.171:55830
+2026.10.31 15:07:50 LOG6[1]: Peer certificate not required
+2026.10.31 15:07:51 LOG3[1]: SSL_accept: ssl3_read_bytes@ssl/record/rec_layer_s3.c:918: error:0A000418:SSL routines::tlsv1 alert unknown ca: SSL alert number 48
+2026.10.31 15:07:51 LOG5[1]: Connection reset/closed: 0 byte(s) sent to TLS, 0 byte(s) sent to socket
+2026.10.31 15:08:03 LOG5[2]: Service [rouge-stunnel] accepted connection from 10.174.132.171:54784
+2026.10.31 15:08:03 LOG6[2]: Peer certificate not required
+2026.10.31 15:08:04 LOG3[2]: SSL_accept: ssl3_read_bytes@ssl/record/rec_layer_s3.c:918: error:0A000418:SSL routines::tlsv1 alert unknown ca: SSL alert number 48
+2026.10.31 15:08:04 LOG5[2]: Connection reset/closed: 0 byte(s) sent to TLS, 0 byte(s) sent to socket
+# "Peer certificate not required" = the rogue would have accepted any client
+# "tlsv1 alert unknown ca, SSL alert number 48" = the ESP32 sent TLS alert 48 (unknown_ca): it does not trust the rogue's issuer
+# "0 byte(s) sent to socket" = no DNS question ever reached the rogue
