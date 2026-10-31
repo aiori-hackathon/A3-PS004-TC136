@@ -1,5 +1,5 @@
 # MISSING SIGNATURES: the parent publishes a real DS for nosig.lab.test, the zone has its DNSKEY but NO RRSIG at all
-# mode 1 (lab): kdig -> stunnel (127.0.0.1:8530, mTLS, esp32-1 cert) -> Unbound 1.25.2 -> Knot 3.6.1, Unbound restarted just before (cache cold)
+# mode 1 (lab): kdig -> stunnel (127.0.0.1:8530, mTLS, esp32-1 cert) -> Unbound 1.25.2 -> Knot 3.6.2, Unbound restarted just before (cache cold)
 # 2026-11-01 02:41 IST
 # zone file: SOA, NS, ota A, and one DNSKEY (257, algorithm 13, tag 26796, made with dnssec-keygen). It is never signed: 0 RRSIG records
 # parent lab.test.zone: nosig NS dns1  +  nosig.lab.test. IN DS 26796 13 2 7CFCA8838FC4D6B180EFC10FE... (made with dnssec-dsfromkey -2)

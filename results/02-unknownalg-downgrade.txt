@@ -1,5 +1,5 @@
 # DOWNGRADE: the parent publishes a DS with an algorithm no validator knows -> the zone looks UNSIGNED (insecure), not bogus
-# mode 1 (lab): kdig -> stunnel (127.0.0.1:8530, mTLS, esp32-1 cert) -> Unbound 1.25.2 -> Knot 3.6.1, Unbound restarted just before (cache cold)
+# mode 1 (lab): kdig -> stunnel (127.0.0.1:8530, mTLS, esp32-1 cert) -> Unbound 1.25.2 -> Knot 3.6.2, Unbound restarted just before (cache cold)
 # 2026-11-01 02:17 IST
 # unknownalg.lab.test is fully signed (hand-signed with dnssec-signzone): DNSKEYs use algorithm 8 (RSASHA256)
 # zone's own keys : DNSKEY 256 3 8;DNSKEY 257 3 8;

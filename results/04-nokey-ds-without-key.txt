@@ -1,5 +1,5 @@
 # KEY MISSING: the parent publishes a DS for a key that is NOT in the zone
-# mode 1 (lab): kdig -> stunnel (127.0.0.1:8530, mTLS, esp32-1 cert) -> Unbound 1.25.2 -> Knot 3.6.1, Unbound restarted just before (cache cold)
+# mode 1 (lab): kdig -> stunnel (127.0.0.1:8530, mTLS, esp32-1 cert) -> Unbound 1.25.2 -> Knot 3.6.2, Unbound restarted just before (cache cold)
 # 2026-11-01 02:43 IST
 # nokey.lab.test is fully signed with valid dates (key A = KSK tag 24275, plus a ZSK 29169): the signatures themselves are fine
 # the parent's DS is the DS of a DIFFERENT key B (tag 15902), made in a temp folder and thrown away. Key B is in no zone anywhere
