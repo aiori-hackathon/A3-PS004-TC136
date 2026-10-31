@@ -17,6 +17,9 @@ static const char *names[] = {
     "ota.expired.lab.test",
     "ota.future.lab.test",
     "ota.badsig.lab.test",
+    "ota.unknownalg.lab.test",
+    "ota.nosig.lab.test",
+    "ota.nokey.lab.test",
 };
 
 void app_main(void)

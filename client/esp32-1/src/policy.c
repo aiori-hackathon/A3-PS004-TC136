@@ -6,6 +6,7 @@ static const char *must_be_secure[] = {
     "ota.lab.test",
     "ota.signed.lab.test",
     "ota.unsigned.lab.test",
+    "ota.unknownalg.lab.test",
 };
 
 bool policy_must_be_secure(const char *name)
