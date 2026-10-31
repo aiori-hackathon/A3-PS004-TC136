@@ -1,0 +1,37 @@
+# KEY MISSING: the parent publishes a DS for a key that is NOT in the zone
+# mode 1 (lab): kdig -> stunnel (127.0.0.1:8530, mTLS, esp32-1 cert) -> Unbound 1.25.2 -> Knot 3.6.1, Unbound restarted just before (cache cold)
+# 2026-11-01 02:43 IST
+# nokey.lab.test is fully signed with valid dates (key A = KSK tag 24275, plus a ZSK 29169): the signatures themselves are fine
+# the parent's DS is the DS of a DIFFERENT key B (tag 15902), made in a temp folder and thrown away. Key B is in no zone anywhere
+# so the chain parent -> child cannot be closed: no DNSKEY in the zone matches the DS
+# the KSK that IS in the zone (dnssec-dsfromkey on the signed zone): nokey.lab.test. IN DS 24275 13 2 3923420E22F0237...
+# the DS in the parent:                                            nokey.lab.test. IN DS 15902 13 2 6B07918CD7C79FD...
+
+## 1. through the gateway: a normal signed zone for comparison, then nokey
+
+$ kdig ... A ota.signed.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 47014
+;; Flags: qr rd ra ad; QUERY: 1; ANSWER: 1; AUTHORITY: 0; ADDITIONAL: 1
+ota.signed.lab.test.	300	IN	A	10.53.0.8
+
+$ kdig ... A ota.nokey.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: SERVFAIL; id: 62989
+;; Flags: qr rd ra; QUERY: 1; ANSWER: 0; AUTHORITY: 0; ADDITIONAL: 1
+;; EDE: 6 (DNSSEC Bogus): 'validation failure <ota.nokey.lab.test. A IN>: no keys have a DS with algorithm ECDSAP256SHA256 from 10.54.0.2 for key nokey.lab.test. while building chain of trust'
+
+## 2. Knot directly (5300): the zone is served normally, with valid signatures (aa, an A record and its RRSIG)
+
+$ kdig @127.0.0.1 -p 5300 +dnssec A ota.nokey.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 38371
+;; Flags: qr aa rd; QUERY: 1; ANSWER: 2; AUTHORITY: 0; ADDITIONAL: 1
+ota.nokey.lab.test. 	300	IN	A	10.53.0.17
+ota.nokey.lab.test. 	300	IN	RRSIG	A 13 4 300 20271020000000 20261020000000 29169 nokey.lab
+
+## 3. Unbound's reason (val-log-level 2)
+[1793481223] unbound[1:0] info: validation failure <ota.nokey.lab.test. A IN>: no keys have a DS with algorithm ECDSAP256SHA256 from 10.54.0.2 for key nokey.lab.test. while building chain of trust
+[1793481223] unbound[1:0] info: 10.54.0.15 ota.nokey.lab.test. A IN SERVFAIL 0.001653 0 217
+
+# read it like this:
+# - SERVFAIL, bogus. The signatures are valid and the zone is served fine: the failure is only in the link parent -> child
+# - the RFC suggests EDE 9 'DNSKEY Missing' for this case; Unbound 1.25.2 answers EDE 6 'DNSSEC Bogus' with 'no keys have a DS with algorithm ... for key nokey.lab.test.'
+# - so resolvers do not agree on the EDE number for the same failure. This is why the ESP32 decides on RCODE + AD only and uses EDE for the log
