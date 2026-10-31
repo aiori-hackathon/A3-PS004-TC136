@@ -7,8 +7,49 @@
 #include "certs.h"
 #include "config.h"
 
+#ifdef GATEWAY_PIN_SHA256
+#include <stdio.h>
+#include <strings.h>
+#include "mbedtls/ssl.h"
+#include "mbedtls/x509_crt.h"
+#include "mbedtls/pk.h"
+#include "psa/crypto.h"
+#endif
+
 static const char *TAG = "dot";
 static esp_tls_t *s_tls = NULL;
+
+#ifdef GATEWAY_PIN_SHA256
+// pin env: besides the CA check, the gateway's PUBLIC KEY must hash to GATEWAY_PIN_SHA256, i.e. the
+// SHA-256 of its SubjectPublicKeyInfo (openssl x509 -pubkey | openssl pkey -pubin -outform DER |
+// openssl dgst -sha256). A cert signed by our CA for another key is refused
+static bool gateway_pin_ok(void)
+{
+    mbedtls_ssl_context *ssl = esp_tls_get_ssl_context(s_tls);
+    const mbedtls_x509_crt *crt = ssl ? mbedtls_ssl_get_peer_cert(ssl) : NULL;
+    if (crt == NULL) {
+        ESP_LOGE(TAG, "no peer certificate to check the pin against");
+        return false;
+    }
+
+    unsigned char der[160];
+    int len = mbedtls_pk_write_pubkey_der(&crt->pk, der, sizeof(der));   // written at the end of der
+    unsigned char hash[32];
+    size_t hlen = 0;
+    if (len <= 0 || psa_hash_compute(PSA_ALG_SHA_256, der + sizeof(der) - len, len,
+                                     hash, sizeof(hash), &hlen) != PSA_SUCCESS) {
+        ESP_LOGE(TAG, "could not hash the gateway key");
+        return false;
+    }
+
+    char got[65];
+    for (int i = 0; i < 32; i++) {
+        snprintf(got + 2 * i, 3, "%02x", hash[i]);
+    }
+    ESP_LOGI(TAG, "gateway key sha256 %s", got);
+    return strcasecmp(got, GATEWAY_PIN_SHA256) == 0;
+}
+#endif
 
 esp_err_t dot_connect(void)
 {
@@ -40,6 +81,14 @@ esp_err_t dot_connect(void)
         return ESP_FAIL;
     }
     ESP_LOGI(TAG, "mTLS handshake OK in %lld ms", ms);
+#ifdef GATEWAY_PIN_SHA256
+    if (!gateway_pin_ok()) {
+        ESP_LOGE(TAG, "gateway key does not match the pin: refusing");
+        dot_close();
+        return ESP_FAIL;
+    }
+    ESP_LOGI(TAG, "gateway key matches the pin");
+#endif
     return ESP_OK;
 }
 

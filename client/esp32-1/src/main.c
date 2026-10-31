@@ -7,6 +7,8 @@
 #include "dot.h"
 #include "policy.h"
 #include "bench.h"
+#include "crypto_bench.h"
+#include "timesync.h"
 
 static const char *TAG = "client";
 
@@ -33,13 +35,29 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(ret);
 
+#ifdef CRYPTO_BENCH
+    // crypto-bench env: no Wi-Fi, only time the chip
+    crypto_bench_run();
+    return;
+#endif
+
     if (wifi_connect() != ESP_OK) {
         ESP_LOGE(TAG, "no wifi, stopping");
         return;
     }
     ESP_LOGI(TAG, "wifi ready");
 
-#ifdef BENCH_ROUNDS
+#ifdef NTP_SERVER_IP
+    // sntp env: set the clock first so certificate dates can be checked. If it fails the clock
+    // stays at 1970 and the handshake is expected to fail: that is the point of the test
+    time_sync();
+#endif
+
+#ifdef PLAIN_DNS_PORT
+    // bench-udp env: the same names over plain UDP, no TLS
+    bench_udp_run(names, sizeof(names) / sizeof(names[0]));
+    return;
+#elif defined(BENCH_ROUNDS)
     // benchmark envs: measure instead of the normal run
     bench_run(names, sizeof(names) / sizeof(names[0]));
     return;
