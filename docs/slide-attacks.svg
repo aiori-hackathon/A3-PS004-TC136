@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="Inter, 'DejaVu Sans', Arial, sans-serif">
+<rect width="1920" height="1080" fill="#fff"/>
+<text x="960" y="120" text-anchor="middle" font-size="54" font-weight="700" fill="#1a1a1a">Seven attacks, all stopped before any DNS is trusted</text>
+<g font-size="24" font-weight="700" fill="#666"><text x="140" y="215">#</text><text x="220" y="215">ATTACK</text><text x="700" y="215">WHAT THE ATTACKER DOES</text><text x="1290" y="215">WHERE IT STOPS</text><text x="1700" y="215">RESULT</text></g>
+<line x1="120" y1="235" x2="1800" y2="235" stroke="#ccc" stroke-width="2"/>
+<rect x="120" y="250" width="1680" height="95" fill="#f6f8fb"/>
+<circle cx="152" cy="297.5" r="22" fill="#2f5fd0"/><text x="152" y="306.5" text-anchor="middle" font-size="26" font-weight="700" fill="#fff">1</text>
+<text x="220" y="306.5" font-size="31" font-weight="700" fill="#1a1a1a">No certificate</text>
+<text x="700" y="306.5" font-size="26" fill="#333">Connects with no client cert</text>
+<rect x="1290" y="269.5" width="360" height="54" rx="27" fill="#e4f5e9" stroke="#2a8a46" stroke-width="2"/><text x="1470" y="305.5" text-anchor="middle" font-size="25" font-weight="600" fill="#1d6b36">TLS handshake</text>
+<text x="1700" y="306.5" font-size="26" fill="#555">results/06</text>
+<circle cx="152" cy="392.5" r="22" fill="#2f5fd0"/><text x="152" y="401.5" text-anchor="middle" font-size="26" font-weight="700" fill="#fff">2</text>
+<text x="220" y="401.5" font-size="31" font-weight="700" fill="#1a1a1a">Fake CA, same name</text>
+<text x="700" y="401.5" font-size="26" fill="#333">Cert says esp32-1, other CA signed it</text>
+<rect x="1290" y="364.5" width="360" height="54" rx="27" fill="#e4f5e9" stroke="#2a8a46" stroke-width="2"/><text x="1470" y="400.5" text-anchor="middle" font-size="25" font-weight="600" fill="#1d6b36">TLS handshake</text>
+<text x="1700" y="401.5" font-size="26" fill="#555">results/08</text>
+<rect x="120" y="440" width="1680" height="95" fill="#f6f8fb"/>
+<circle cx="152" cy="487.5" r="22" fill="#2f5fd0"/><text x="152" y="496.5" text-anchor="middle" font-size="26" font-weight="700" fill="#fff">3</text>
+<text x="220" y="496.5" font-size="31" font-weight="700" fill="#1a1a1a">Gateway cert as client</text>
+<text x="700" y="496.5" font-size="26" fill="#333">Right CA, but a server-only cert</text>
+<rect x="1290" y="459.5" width="360" height="54" rx="27" fill="#e4f5e9" stroke="#2a8a46" stroke-width="2"/><text x="1470" y="495.5" text-anchor="middle" font-size="25" font-weight="600" fill="#1d6b36">TLS handshake</text>
+<text x="1700" y="496.5" font-size="26" fill="#555">results/13</text>
+<circle cx="152" cy="582.5" r="22" fill="#2f5fd0"/><text x="152" y="591.5" text-anchor="middle" font-size="26" font-weight="700" fill="#fff">4</text>
+<text x="220" y="591.5" font-size="31" font-weight="700" fill="#1a1a1a">Rogue gateway</text>
+<text x="700" y="591.5" font-size="26" fill="#333">Fake server answers the ESP32</text>
+<rect x="1290" y="554.5" width="360" height="54" rx="27" fill="#e4f5e9" stroke="#2a8a46" stroke-width="2"/><text x="1470" y="590.5" text-anchor="middle" font-size="25" font-weight="600" fill="#1d6b36">ESP32 rejects cert</text>
+<text x="1700" y="591.5" font-size="26" fill="#555">results/15</text>
+<rect x="120" y="630" width="1680" height="95" fill="#f6f8fb"/>
+<circle cx="152" cy="677.5" r="22" fill="#2f5fd0"/><text x="152" y="686.5" text-anchor="middle" font-size="26" font-weight="700" fill="#fff">5</text>
+<text x="220" y="686.5" font-size="31" font-weight="700" fill="#1a1a1a">Gateway down</text>
+<text x="700" y="686.5" font-size="26" fill="#333">Blocks gateway, hopes for plain DNS</text>
+<rect x="1290" y="649.5" width="360" height="54" rx="27" fill="#e4f5e9" stroke="#2a8a46" stroke-width="2"/><text x="1470" y="685.5" text-anchor="middle" font-size="25" font-weight="600" fill="#1d6b36">No fallback, refuses</text>
+<text x="1700" y="686.5" font-size="26" fill="#555">results/09</text>
+<circle cx="152" cy="772.5" r="22" fill="#2f5fd0"/><text x="152" y="781.5" text-anchor="middle" font-size="26" font-weight="700" fill="#fff">6</text>
+<text x="220" y="781.5" font-size="31" font-weight="700" fill="#1a1a1a">CD bit set</text>
+<text x="700" y="781.5" font-size="26" fill="#333">Asks the gateway not to validate</text>
+<rect x="1290" y="744.5" width="360" height="54" rx="27" fill="#e4f5e9" stroke="#2a8a46" stroke-width="2"/><text x="1470" y="780.5" text-anchor="middle" font-size="25" font-weight="600" fill="#1d6b36">Gateway ignores it</text>
+<text x="1700" y="781.5" font-size="26" fill="#555">results/11</text>
+<rect x="120" y="820" width="1680" height="95" fill="#f6f8fb"/>
+<circle cx="152" cy="867.5" r="22" fill="#2f5fd0"/><text x="152" y="876.5" text-anchor="middle" font-size="26" font-weight="700" fill="#fff">7</text>
+<text x="220" y="876.5" font-size="31" font-weight="700" fill="#1a1a1a">Back door to Unbound</text>
+<text x="700" y="876.5" font-size="26" fill="#333">Queries Unbound, skipping stunnel</text>
+<rect x="1290" y="839.5" width="360" height="54" rx="27" fill="#e4f5e9" stroke="#2a8a46" stroke-width="2"/><text x="1470" y="875.5" text-anchor="middle" font-size="25" font-weight="600" fill="#1d6b36">Two locks, no way in</text>
+<text x="1700" y="876.5" font-size="26" fill="#555">results/10</text>
+<text x="960" y="1010" text-anchor="middle" font-size="32" fill="#444">Every attempt has a saved result file in the repository</text></svg>

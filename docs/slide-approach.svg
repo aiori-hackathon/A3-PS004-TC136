@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="Inter, 'DejaVu Sans', Arial, sans-serif">
+<rect width="1920" height="1080" fill="#ffffff"/>
+<text x="960" y="150" text-anchor="middle" font-size="54" font-weight="700" fill="#1a1a1a">The gateway does the checking, the device decides</text>
+<g font-size="40" font-weight="600" text-anchor="middle" fill="#1a1a1a">
+<rect x="140" y="400" width="400" height="260" rx="24" fill="#eef4ff" stroke="#2f5fd0" stroke-width="4"/>
+<text x="340" y="510">Device</text><text x="340" y="565" font-size="28" font-weight="400" fill="#444">ESP32, no DNSSEC code</text>
+<rect x="760" y="400" width="400" height="260" rx="24" fill="#eefaf0" stroke="#2a8a46" stroke-width="4"/>
+<text x="960" y="510">Gateway</text><text x="960" y="565" font-size="28" font-weight="400" fill="#444">checks every signature</text>
+<rect x="1380" y="400" width="400" height="260" rx="24" fill="#f4f4f4" stroke="#666" stroke-width="4"/>
+<text x="1580" y="510">Internet</text><text x="1580" y="565" font-size="28" font-weight="400" fill="#444">signed DNS records</text>
+</g>
+<g stroke="#1a1a1a" stroke-width="6" fill="none">
+<line x1="540" y1="530" x2="760" y2="530" stroke="#2f5fd0" stroke-width="10"/>
+<line x1="1160" y1="530" x2="1380" y2="530"/>
+</g>
+<g transform="translate(650,455)" fill="#2f5fd0"><rect x="-22" y="14" width="44" height="34" rx="6"/><path d="M-14 14v-12a14 14 0 0 1 28 0v12" fill="none" stroke="#2f5fd0" stroke-width="7"/></g>
+<text x="650" y="760" text-anchor="middle" font-size="32" fill="#2f5fd0" font-weight="600">mutual TLS</text>
+<text x="650" y="805" text-anchor="middle" font-size="26" fill="#444">both sides show a certificate</text>
+<text x="960" y="930" text-anchor="middle" font-size="36" fill="#1a1a1a">Gateway sends the answer with a flag: <tspan font-weight="700">AD</tspan> = "I checked it"</text>
+<text x="960" y="985" text-anchor="middle" font-size="30" fill="#555">The device believes the flag only because the tunnel is authenticated</text>
+</svg>
