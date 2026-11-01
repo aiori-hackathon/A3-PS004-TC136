@@ -1,0 +1,44 @@
+# MODE 2: ESP32-S3 (esp32-1) -> stunnel on the Pi (10.174.132.118:853, mTLS) -> Unbound on the Pi -> Knot (laptop, docker, 10.174.132.72:5300)
+# 2026-10-31 18:58, phone hotspot "OnePlus 11 5G" (10.174.132.0/24), firmware: pio run -e pi
+# ESP32: 160 MHz, -Og build, Wi-Fi power save off, TLS 1.2. Pi: Debian 13, Unbound 1.26.2, stunnel 5.74 (native, not containers)
+# one TLS connection, 6 queries. Unbound reply lines below show "0" in the from-cache column: all six were fresh validations
+# (earlier Wi-Fi driver boot lines omitted)
+
+## ESP32 serial
+I (4189) esp_netif_handlers: sta ip: 10.174.132.171, mask: 255.255.255.0, gw: 10.174.132.174
+I (4189) wifi: got ip 10.174.132.171
+I (4189) client: wifi ready
+I (4189) dot: connecting to 10.174.132.118:853 as gateway.lab.test
+I (5879) dot: mTLS handshake OK in 1684 ms
+I (5949) client: ota.lab.test             SECURE    use 10.53.0.4  (rcode 0, ad 1, 69 ms)
+I (6149) client: ota.signed.lab.test      SECURE    use 10.53.0.8  (rcode 0, ad 1, 203 ms)
+W (6649) client: ota.unsigned.lab.test    INSECURE  refused: must be secure  (rcode 0, ad 0, 493 ms)
+W (6769) client: ota.expired.lab.test     BOGUS     refused  (rcode 2, ede 7, 122 ms)
+W (7099) client: ota.future.lab.test      BOGUS     refused  (rcode 2, ede 8, 328 ms)
+W (7209) client: ota.badsig.lab.test      BOGUS     refused  (rcode 2, ede 6, 108 ms)
+I (7209) main_task: Returned from app_main()
+
+## Pi: stunnel@dot (journalctl, one copy of each line; stunnel logs to syslog and stderr)
+2026-10-31T18:58:36: LOG5[3]: Service [dot] accepted connection from 10.174.132.171:58010
+2026-10-31T18:58:37: LOG6[3]: Certificate accepted at depth=1: CN=LAB CA
+2026-10-31T18:58:37: LOG5[3]: Certificate accepted at depth=0: CN=esp32-1
+2026-10-31T18:58:38: LOG6[3]: TLSv1.2 ciphersuite: ECDHE-ECDSA-AES256-GCM-SHA384 (256-bit encryption)
+2026-10-31T18:58:38: LOG5[3]: s_connect: connected 127.0.0.1:53
+2026-10-31T18:58:41: LOG5[3]: Connection closed: 746 byte(s) sent to TLS, 296 byte(s) sent to socket
+
+## Pi: Unbound (journalctl). Client 127.0.0.1 = stunnel on the same device; "from 10.174.132.72" = Knot on the laptop
+2026-10-31T18:58:38 info: 127.0.0.1 ota.lab.test. A IN
+2026-10-31T18:58:38 info: 127.0.0.1 ota.lab.test. A IN NOERROR 0.053747 0 57
+2026-10-31T18:58:38 info: 127.0.0.1 ota.signed.lab.test. A IN
+2026-10-31T18:58:38 info: 127.0.0.1 ota.signed.lab.test. A IN NOERROR 0.180423 0 64
+2026-10-31T18:58:38 info: 127.0.0.1 ota.unsigned.lab.test. A IN
+2026-10-31T18:58:39 info: 127.0.0.1 ota.unsigned.lab.test. A IN NOERROR 0.478478 0 66
+2026-10-31T18:58:39 info: 127.0.0.1 ota.expired.lab.test. A IN
+2026-10-31T18:58:39 info: validation failure <ota.expired.lab.test. A IN>: signature expired from 10.174.132.72 for key expired.lab.test. while building chain of trust
+2026-10-31T18:58:39 info: 127.0.0.1 ota.expired.lab.test. A IN SERVFAIL 0.107551 0 196
+2026-10-31T18:58:39 info: 127.0.0.1 ota.future.lab.test. A IN
+2026-10-31T18:58:39 info: validation failure <ota.future.lab.test. A IN>: signature before inception date from 10.174.132.72 for key future.lab.test. while building chain of trust
+2026-10-31T18:58:39 info: 127.0.0.1 ota.future.lab.test. A IN SERVFAIL 0.312661 0 207
+2026-10-31T18:58:39 info: 127.0.0.1 ota.badsig.lab.test. A IN
+2026-10-31T18:58:39 info: validation failure <ota.badsig.lab.test. A IN>: signature crypto failed from 10.174.132.72
+2026-10-31T18:58:39 info: 127.0.0.1 ota.badsig.lab.test. A IN SERVFAIL 0.089952 0 144

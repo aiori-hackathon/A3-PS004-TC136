@@ -1,0 +1,8 @@
+FROM alpine:3.23
+
+RUN apk add stunnel --no-cache
+
+EXPOSE 853 
+
+CMD ["stunnel","/config/stunnel.conf"]
+

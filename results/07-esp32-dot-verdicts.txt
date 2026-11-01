@@ -1,0 +1,12 @@
+# ESP32-S3 (esp32-1) -> stunnel (laptop 10.252.99.72:8530, mTLS) -> Unbound -> Knot
+# 2026-10-23, phone hotspot, Wi-Fi power save off, CPU 160 MHz, -Og build, TLS 1.2
+# one TLS connection, 6 queries, Unbound cache cold
+I (4589) client: wifi ready
+I (4589) dot: connecting to 10.252.99.72:8530 as gateway.lab.test
+I (10499) dot: mTLS handshake OK in 5908 ms
+I (11669) client: ota.lab.test             SECURE    10.53.0.4  (rcode 0, ad 1, 1171 ms)
+I (11939) client: ota.signed.lab.test      SECURE    10.53.0.8  (rcode 0, ad 1, 265 ms)
+I (12109) client: ota.unsigned.lab.test    INSECURE  10.53.0.7  (rcode 0, ad 0, 171 ms)
+W (12859) client: ota.expired.lab.test     BOGUS     refused  (rcode 2, ede 7, 747 ms)
+W (13979) client: ota.future.lab.test      BOGUS     refused  (rcode 2, ede 8, 1118 ms)
+W (14259) client: ota.badsig.lab.test      BOGUS     refused  (rcode 2, ede 6, 281 ms)

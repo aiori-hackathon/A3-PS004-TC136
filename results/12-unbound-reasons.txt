@@ -1,0 +1,21 @@
+# Unbound log for the 01 run: query, reply, and why validation failed
+# 2026-10-27, Unbound 1.25.2, stunnel 5.76, Knot 3.6.1, kdig 3.5.8 (laptop, rootless podman, network podman1)
+# verbosity: 1, val-log-level: 2, log-queries: yes, log-replies: yes
+# reply line = client name type class rcode seconds from-cache bytes
+
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.lab.test. A IN
+[1793086833] unbound[1:0] info: generate keytag query _ta-01b9.lab.test. NULL IN
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.lab.test. A IN NOERROR 0.001244 0 57
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.signed.lab.test. A IN
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.signed.lab.test. A IN NOERROR 0.000935 0 64
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.unsigned.lab.test. A IN
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.unsigned.lab.test. A IN NOERROR 0.000502 0 66
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.expired.lab.test. A IN
+[1793086833] unbound[1:0] info: validation failure <ota.expired.lab.test. A IN>: signature expired from 10.53.0.2 for key expired.lab.test. while building chain of trust
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.expired.lab.test. A IN SERVFAIL 0.002361 0 192
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.future.lab.test. A IN
+[1793086833] unbound[1:0] info: validation failure <ota.future.lab.test. A IN>: signature before inception date from 10.53.0.2 for key future.lab.test. while building chain of trust
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.future.lab.test. A IN SERVFAIL 0.003263 0 203
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.badsig.lab.test. A IN
+[1793086833] unbound[1:0] info: validation failure <ota.badsig.lab.test. A IN>: signature crypto failed from 10.53.0.2
+[1793086833] unbound[1:0] info: 10.53.0.15 ota.badsig.lab.test. A IN SERVFAIL 0.003007 0 140

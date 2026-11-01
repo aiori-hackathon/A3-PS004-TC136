@@ -1,0 +1,58 @@
+; File written on Wed Oct 21 14:26:11 2026
+; dnssec_signzone version 9.18.50
+expired.lab.test.	300	IN SOA	dns1.lab.test. admin.lab.test. (
+					2026101801 ; serial
+					21600      ; refresh (6 hours)
+					3600       ; retry (1 hour)
+					604800     ; expire (1 week)
+					86400      ; minimum (1 day)
+					)
+			300	RRSIG	SOA 13 3 300 (
+					20261002000000 20261001000000 8149 expired.lab.test.
+					QeWL0uC5yHrDc+oOTVUtG0lfhN/3bSPFyB49
+					WEMiEr06B7IA3DpJOmflQbkhIUGd14n5Xv1u
+					cKPmqvCKDHUVmw== )
+			300	NS	dns1.lab.test.
+			300	RRSIG	NS 13 3 300 (
+					20261002000000 20261001000000 8149 expired.lab.test.
+					RIrl+8h36Qru8mlELwWav0ywXIccV1DTBNS/
+					zFK+7GE+jCbhxLD70mDSo6qIsspO7/WB2Ko0
+					aLNiPywzaey0eQ== )
+			300	NSEC	ota.expired.lab.test. NS SOA RRSIG NSEC DNSKEY
+			300	RRSIG	NSEC 13 3 300 (
+					20261002000000 20261001000000 8149 expired.lab.test.
+					ieqoBlhSa3Qex8PMdlV/0ulbBeBQJAYFBQ5u
+					gEgsW/Nc3KqbxxjsOiyZxmO4JQCq2ZX3QXBp
+					xXDBL/ITuZkqmA== )
+			300	DNSKEY	257 3 13 (
+					XaxEyrgflZzS12/R3erRJ1yS00BqMgAQkicr
+					D89ThkTuUW89HGpjkyVOSRehY7TBycK2ZqS3
+					h1hmOEAtkRbsyQ==
+					) ; KSK; alg = ECDSAP256SHA256 ; key id = 1401
+			300	DNSKEY	256 3 13 (
+					jTPoDykIlZvhWrPFpQO1FlLGYKIyxf4LnIsQ
+					VQNEPQ1+8U+WLPvNa03ZJ20wCzSkrEDHx1jN
+					bg2Yz1J4v6WehA==
+					) ; ZSK; alg = ECDSAP256SHA256 ; key id = 8149
+			300	RRSIG	DNSKEY 13 3 300 (
+					20261002000000 20261001000000 1401 expired.lab.test.
+					x64hs/HJHkf2Iahy4HGRYBrNR112s81+jjva
+					higNetv+85U8EvrC+YW6LR9mApFuOVg/ctlS
+					cNHnL01gtUkthQ== )
+			300	RRSIG	DNSKEY 13 3 300 (
+					20261002000000 20261001000000 8149 expired.lab.test.
+					ckuEyltin5vJxTFOCgxtt8F8M896/eLl8pBe
+					9QHc17m8dAU9539P2ODYylrsKUuTHd1D714O
+					UJA86KMN3KwOnw== )
+ota.expired.lab.test.	300	IN A	10.53.0.9
+			300	RRSIG	A 13 4 300 (
+					20261002000000 20261001000000 8149 expired.lab.test.
+					mXoR2dxFPWL2XlNlxvOVtBtaH6bLou9ktQPX
+					9+ALGCNyJcKJGQnsxmqMecSWPxrBPTtF1bun
+					PaVZj7LhM2d+Iw== )
+			300	NSEC	expired.lab.test. A RRSIG NSEC
+			300	RRSIG	NSEC 13 4 300 (
+					20261002000000 20261001000000 8149 expired.lab.test.
+					miTw8/h+29Hhp9tB3aK+PjzCQuHRFLy+u820
+					EKZQQrzBfvOcn1Vk122f2SP3pFuK8klRgvjK
+					QBoeetEXVwixfw== )

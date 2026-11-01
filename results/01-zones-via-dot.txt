@@ -1,0 +1,39 @@
+# kdig -> stunnel (127.0.0.1:8530, mTLS, esp32-1 cert) -> Unbound -> Knot
+# 2026-10-27, Unbound 1.25.2, stunnel 5.76, Knot 3.6.1, kdig 3.5.8 (laptop, rootless podman, network podman1)
+# Unbound restarted just before (cache cold), one query per zone
+
+$ kdig ... +tls-certfile=esp32-1.crt A ota.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 52395
+;; Flags: qr rd ra ad; QUERY: 1; ANSWER: 1; AUTHORITY: 0; ADDITIONAL: 1
+ota.lab.test.       	300	IN	A	10.53.0.4
+;; From 127.0.0.1@8530(TLS) in 12.6 ms
+
+$ kdig ... +tls-certfile=esp32-1.crt A ota.signed.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 25363
+;; Flags: qr rd ra ad; QUERY: 1; ANSWER: 1; AUTHORITY: 0; ADDITIONAL: 1
+ota.signed.lab.test.	300	IN	A	10.53.0.8
+;; From 127.0.0.1@8530(TLS) in 6.6 ms
+
+$ kdig ... +tls-certfile=esp32-1.crt A ota.unsigned.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 17700
+;; Flags: qr rd ra; QUERY: 1; ANSWER: 1; AUTHORITY: 0; ADDITIONAL: 1
+ota.unsigned.lab.test.	300	IN	A	10.53.0.7
+;; From 127.0.0.1@8530(TLS) in 6.0 ms
+
+$ kdig ... +tls-certfile=esp32-1.crt A ota.expired.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: SERVFAIL; id: 9549
+;; Flags: qr rd ra; QUERY: 1; ANSWER: 0; AUTHORITY: 0; ADDITIONAL: 1
+;; EDE: 7 (Signature Expired): 'validation failure <ota.expired.lab.test. A IN>: signature expired from 10.53.0.2 for key expired.lab.test. while building chain of trust'
+;; From 127.0.0.1@8530(TLS) in 8.0 ms
+
+$ kdig ... +tls-certfile=esp32-1.crt A ota.future.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: SERVFAIL; id: 29753
+;; Flags: qr rd ra; QUERY: 1; ANSWER: 0; AUTHORITY: 0; ADDITIONAL: 1
+;; EDE: 8 (Signature Not Yet Valid): 'validation failure <ota.future.lab.test. A IN>: signature before inception date from 10.53.0.2 for key future.lab.test. while building chain of trust'
+;; From 127.0.0.1@8530(TLS) in 9.3 ms
+
+$ kdig ... +tls-certfile=esp32-1.crt A ota.badsig.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: SERVFAIL; id: 41033
+;; Flags: qr rd ra; QUERY: 1; ANSWER: 0; AUTHORITY: 0; ADDITIONAL: 1
+;; EDE: 6 (DNSSEC Bogus): 'validation failure <ota.badsig.lab.test. A IN>: signature crypto failed from 10.53.0.2'
+;; From 127.0.0.1@8530(TLS) in 11.9 ms

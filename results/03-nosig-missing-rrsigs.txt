@@ -1,0 +1,33 @@
+# MISSING SIGNATURES: the parent publishes a real DS for nosig.lab.test, the zone has its DNSKEY but NO RRSIG at all
+# mode 1 (lab): kdig -> stunnel (127.0.0.1:8530, mTLS, esp32-1 cert) -> Unbound 1.25.2 -> Knot 3.6.2, Unbound restarted just before (cache cold)
+# 2026-11-01 02:41 IST
+# zone file: SOA, NS, ota A, and one DNSKEY (257, algorithm 13, tag 26796, made with dnssec-keygen). It is never signed: 0 RRSIG records
+# parent lab.test.zone: nosig NS dns1  +  nosig.lab.test. IN DS 26796 13 2 7CFCA8838FC4D6B180EFC10FE... (made with dnssec-dsfromkey -2)
+# what an attacker who strips the RRSIGs from a signed zone would produce
+
+## 1. through the gateway: a normal signed zone for comparison, then the stripped one
+
+$ kdig ... A ota.signed.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: NOERROR; id: 47585
+;; Flags: qr rd ra ad; QUERY: 1; ANSWER: 1; AUTHORITY: 0; ADDITIONAL: 1
+ota.signed.lab.test.	300	IN	A	10.53.0.8
+
+$ kdig ... A ota.nosig.lab.test
+;; ->>HEADER<<- opcode: QUERY; status: SERVFAIL; id: 46599
+;; Flags: qr rd ra; QUERY: 1; ANSWER: 0; AUTHORITY: 0; ADDITIONAL: 1
+;; EDE: 10 (RRSIGs Missing): 'validation failure <ota.nosig.lab.test. A IN>: no signatures from 10.54.0.2 for key nosig.lab.test. while building chain of trust'
+
+## 2. what Knot serves for the zone (port 5300, +dnssec): a DNSKEY, and no RRSIG
+
+$ kdig @127.0.0.1 -p 5300 +dnssec DNSKEY nosig.lab.test | counting record types
+      1 DNSKEY 257 3 13
+zone file RRSIG records: 0
+
+## 3. Unbound's reason (val-log-level 2)
+[1793481064] unbound[1:0] info: validation failure <ota.nosig.lab.test. A IN>: no signatures from 10.54.0.2 for key nosig.lab.test. while building chain of trust
+[1793481064] unbound[1:0] info: 10.54.0.15 ota.nosig.lab.test. A IN SERVFAIL 0.003478 0 182
+
+# read it like this:
+# - EDE 10 'RRSIGs Missing' (RFC 8914): the DS says the zone is signed, but no signature came with the data -> bogus, SERVFAIL
+# - Unbound's log says 'no signatures from <knot> for key nosig.lab.test. while building chain of trust': it fails on the DNSKEY set, before the A record
+# - compare badsig (EDE 6): there the signature exists but is wrong. Here it is absent. Each failure has its own code

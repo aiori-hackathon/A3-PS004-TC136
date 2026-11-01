@@ -1,0 +1,46 @@
+# MODE 2, ALL NINE NAMES: ESP32-S3 (esp32-1) -> stunnel on the Pi (10.174.132.118:853, mTLS) -> Unbound on the Pi -> Knot (laptop, docker, :5300)
+# 2026-11-01 02:50, phone hotspot "OnePlus 11 5G", firmware: pio run -e pi (160 MHz, -Og, Wi-Fi power save off, TLS 1.2)
+# new in this firmware: ota.unknownalg.lab.test is on the must-be-secure list; ota.nosig and ota.nokey added to the names
+# one TLS connection, 9 queries. NOT a cold-cache run: the Pi's Unbound answered all nine from its cache (see section 3), so the 10-20 ms
+# query times are the floor (Wi-Fi + TLS + a cache hit). Cold-cache times are in results/14 (69-493 ms)
+# (earlier Wi-Fi driver boot lines omitted)
+
+## 1. ESP32 serial
+I (4149) esp_netif_handlers: sta ip: 10.174.132.171, mask: 255.255.255.0, gw: 10.174.132.174
+I (4149) wifi: got ip 10.174.132.171
+I (4149) client: wifi ready
+I (4149) dot: connecting to 10.174.132.118:853 as gateway.lab.test
+I (6239) dot: mTLS handshake OK in 2081 ms
+I (6249) client: ota.lab.test             SECURE    use 10.53.0.4  (rcode 0, ad 1, 10 ms)
+I (6259) client: ota.signed.lab.test      SECURE    use 10.53.0.8  (rcode 0, ad 1, 14 ms)
+W (6279) client: ota.unsigned.lab.test    INSECURE  refused: must be secure  (rcode 0, ad 0, 15 ms)
+W (6289) client: ota.expired.lab.test     BOGUS     refused  (rcode 2, ede 7, 15 ms)
+W (6309) client: ota.future.lab.test      BOGUS     refused  (rcode 2, ede 8, 13 ms)
+W (6329) client: ota.badsig.lab.test      BOGUS     refused  (rcode 2, ede 6, 19 ms)
+W (6339) client: ota.unknownalg.lab.test  INSECURE  refused: must be secure  (rcode 0, ad 0, 10 ms)
+W (6349) client: ota.nosig.lab.test       BOGUS     refused  (rcode 2, ede 10, 10 ms)
+W (6369) client: ota.nokey.lab.test       BOGUS     refused  (rcode 2, ede 6, 20 ms)
+
+## 2. Pi: stunnel@dot (journalctl, 31 Oct / 1 Nov 02:50)
+2026-11-01T02:50:04: LOG5[1]: Service [dot] accepted connection from 10.174.132.171:62193
+2026-11-01T02:50:05: LOG5[1]: Certificate accepted at depth=0: CN=esp32-1
+2026-11-01T02:50:07: LOG5[1]: Connection closed: 1227 byte(s) sent to TLS, 448 byte(s) sent to socket
+
+## 3. Pi: Unbound reply lines for the same run (columns: client name type class rcode seconds from-cache bytes; from-cache 1 = cache hit)
+2026-11-01T02:50:06 info: 127.0.0.1 ota.lab.test. A IN NOERROR 0.000000 1 57
+2026-11-01T02:50:06 info: 127.0.0.1 ota.signed.lab.test. A IN NOERROR 0.000000 1 64
+2026-11-01T02:50:06 info: 127.0.0.1 ota.unsigned.lab.test. A IN NOERROR 0.000000 1 66
+2026-11-01T02:50:06 info: 127.0.0.1 ota.expired.lab.test. A IN SERVFAIL 0.000000 1 196
+2026-11-01T02:50:06 info: 127.0.0.1 ota.future.lab.test. A IN SERVFAIL 0.000000 1 207
+2026-11-01T02:50:06 info: 127.0.0.1 ota.badsig.lab.test. A IN SERVFAIL 0.000000 1 144
+2026-11-01T02:50:06 info: 127.0.0.1 ota.unknownalg.lab.test. A IN NOERROR 0.000000 1 68
+2026-11-01T02:50:06 info: 127.0.0.1 ota.nosig.lab.test. A IN SERVFAIL 0.000000 1 186
+2026-11-01T02:50:06 info: 127.0.0.1 ota.nokey.lab.test. A IN SERVFAIL 0.000000 1 221
+
+# read it like this:
+# - the device acts on RCODE + AD only: SERVFAIL = BOGUS = refused, whatever the EDE number. EDE is shown for the log
+# - ota.unknownalg: NOERROR with an IP but no ad = INSECURE. It is on the must-be-secure list, so the device REFUSES it: the downgrade is caught
+#   (the gateway alone could not catch it: see results/02)
+# - ota.unsigned is refused for the same reason; an unsigned name that is not on the list would be used (INSECURE, use IP)
+# - ede values (7, 8, 6, 10, 6) match the kdig results 01, 03, 04. nosig = 10 (RRSIGs Missing), nokey = 6 (Unbound's choice, RFC predicts 9)
+# - handshake 2081 ms (results/14: 1684 ms): the variance between runs is a Wi-Fi/hotspot effect, to be measured in the benchmarks

@@ -1,0 +1,23 @@
+# fake CA: attacker's own 'LAB CA' (made by tests/make-fakeca.sh), fake esp32-1 cert
+# same subject, SAN and rules as the real cert, only the signing key differs
+# 2026-10-27, Unbound 1.25.2, stunnel 5.76, Knot 3.6.1, kdig 3.5.8 (laptop, rootless podman, network podman1)
+
+# key ids: fake cert's issuer vs real CA
+fake-esp32-1 AKID: F4:1A:9B:DC:B3:60:16:92:B6:C9:23:7F:2E:BF:45:29:7E:77:F2:15
+real ca.crt   SKID: 7E:6C:56:E8:8B:DB:74:3F:44:4C:62:0F:B8:E5:35:AB:0A:ED:65:5B
+
+$ kdig ... +tls-certfile=fake-esp32-1.crt +tls-keyfile=fake-esp32-1.key A ota.lab.test
+;; WARNING: TLS, failed to receive reply (A TLS fatal alert has been received.)
+;; WARNING: can't receive reply from 127.0.0.1@8530(TLS)
+;; ERROR: failed to query server 127.0.0.1@8530(TCP)
+
+# stunnel log
+2026.10.27 07:40:41 LOG5[18]: Service [dot] accepted connection from 10.53.0.15:54690
+2026.10.27 07:40:41 LOG6[18]: Peer certificate required
+2026.10.27 07:40:41 LOG4[18]: CERT: Pre-verification error: unable to get local issuer certificate
+2026.10.27 07:40:41 LOG4[18]: Rejected by CERT at depth=0: CN=esp32-1
+2026.10.27 07:40:41 LOG3[18]: SSL_accept: tls_process_client_certificate@ssl/statem/statem_srvr.c:3777: error:0A000086:SSL routines::certificate verify failed
+2026.10.27 07:40:41 LOG5[18]: Connection reset/closed: 0 byte(s) sent to TLS, 0 byte(s) sent to socket
+
+# Unbound log in the same window
+(nothing)

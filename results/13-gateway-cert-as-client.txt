@@ -1,0 +1,29 @@
+# ONE CERTIFICATE, ONE ROLE: the gateway's own cert and key used as a CLIENT certificate against stunnel
+# mode 1 (lab): kdig -> stunnel (127.0.0.1:8530, verifyChain = yes), stunnel 5.76. 2026-11-01 02:50 IST
+# gateway.crt is signed by the real LAB CA and its key is genuine, but it is marked serverAuth only
+# gateway.crt extendedKeyUsage : TLS Web Server Authentication
+# esp32-1.crt  extendedKeyUsage: TLS Web Client Authentication
+
+## 1. kdig presenting gateway.crt + gateway.key as the client certificate
+$ kdig @127.0.0.1 -p 8530 +tls +tls-ca=ca.crt +tls-hostname=gateway.lab.test +tls-certfile=gateway.crt +tls-keyfile=gateway.key A ota.lab.test
+;; WARNING: TLS, failed to receive reply (A TLS fatal alert has been received.)
+;; WARNING: can't receive reply from 127.0.0.1@8530(TLS)
+;; ERROR: failed to query server 127.0.0.1@8530(TCP)
+
+## 2. stunnel's log for that connection
+LOG5[41]: Service [dot] accepted connection from 10.54.0.1:33540
+LOG6[41]: Peer certificate required
+LOG4[41]: CERT: Pre-verification error: unsuitable certificate purpose
+LOG4[41]: Rejected by CERT at depth=0: CN=gateway
+LOG3[41]: SSL_accept: tls_process_client_certificate@ssl/statem/statem_srvr.c:3777: error:0A000086:SSL routines::certificate verify failed
+LOG5[41]: Connection reset/closed: 0 byte(s) sent to TLS, 0 byte(s) sent to socket
+
+## 3. the same check done locally with openssl
+$ openssl verify -CAfile ca.crt -purpose sslclient gateway.crt
+error 26 at 0 depth lookup: unsuitable certificate purpose
+error gateway.crt: verification failed
+
+# read it like this:
+# - the chain is fine (LAB CA), the key matches, the dates are fine. Only the PURPOSE is wrong, and that alone is enough to refuse it
+# - stunnel logs 'unsuitable certificate purpose' and sends 0 bytes to Unbound: the connection never reaches DNS
+# - the reverse also holds: esp32-1.crt is clientAuth only, so a stolen device key cannot pose as the gateway. One stolen key, one role
