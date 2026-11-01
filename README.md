@@ -12,26 +12,26 @@ The device then acts on three things it can read cheaply: `RCODE`, the `AD` flag
 
 ---
 
+## At a glance
+
+| | |
+|---|---|
+| **Device** | ESP32-S3, 849 KB flash, 38 KB RAM, no DNSSEC code |
+| **Gateway** | Raspberry Pi Zero 2 W (415 MB RAM): stunnel + Unbound, or the same as containers |
+| **Trust** | mutual TLS 1.2 with our own ECDSA P-256 CA, every hop has a named protection |
+| **Handshake** | about 1.7 s, once per connection |
+| **Query** | median 12.7 ms, p95 38 ms (warm gateway cache, 450 queries, 0 errors) |
+| **Attacks tried** | 7, all refused, each with a result file |
+
 ## Architecture
 
-```mermaid
-flowchart LR
-  subgraph L["Laptop (the 'internet')"]
-    K["Knot DNS<br/>signed lab.test zones"]
-    CA[("ca.key<br/>never leaves the laptop")]
-  end
-  subgraph G["Gateway: Raspberry Pi Zero 2 W (mode 2) or containers (mode 1)"]
-    S["stunnel :853<br/>checks the device certificate"]
-    U["Unbound<br/>validates DNSSEC"]
-  end
-  E["ESP32-S3<br/>no DNSSEC code<br/>reads RCODE + AD"]
-  E -- "1 DNS over TLS, mutual TLS" --> S
-  S -- "2 plain DNS, same device" --> U
-  U -- "3 plain DNS: DNSSEC protects it" --> K
-  K -- "4 signed answer" --> U
-  U -- "5 verdict: AD, or SERVFAIL + EDE" --> S
-  S -- "6 back through the TLS tunnel" --> E
-```
+![Mode 2: the ESP32 asks the Raspberry Pi gateway over mutual TLS](docs/fig-hardware.png)
+
+The numbers follow one query: **1** the ESP32 opens mutual TLS to stunnel, **2** stunnel hands the query to Unbound on the same device,
+**3** Unbound asks Knot and checks every signature, **4** Knot returns signed records, **5** Unbound answers with `AD`, or `SERVFAIL` and a reason,
+**6** the answer goes back through the tunnel and the ESP32 decides.
+
+![Mode 1: the same system as containers on one laptop](docs/fig-containers.png)
 
 | Hop | Protected by |
 |---|---|
@@ -57,6 +57,10 @@ Two run modes share the same configs and the same firmware code:
 
 The device decides on RCODE + AD only: resolvers pick different EDE numbers for the same failure (see `results/04`), so EDE is only logged.
 
+## Where each attack stops
+
+![Seven attacks on the architecture](docs/slide-attacks-arch.png)
+
 ## Verified results
 
 Every claim below points to a file in [`results/`](results/) holding the raw output and the conditions.
@@ -73,9 +77,11 @@ Every claim below points to a file in [`results/`](results/) holding the raw out
 | **Fail closed**: gateway stopped → the ESP32 refuses, no fallback | [09](results/09-gateway-down-fail-closed.txt) |
 | Unbound cannot be reached except through stunnel (two locks) | [10](results/10-back-door.txt) |
 | A client cannot switch validation off with the CD bit (`ignore-cd-flag`) | [11](results/11-cd-flag.txt) |
+| **Warm-cache benchmark on the ESP32**: 50 rounds of all nine names, median 12.7 ms, p95 38.0 ms, one slow query of 1.6 s, free heap flat at about 260 KB, 0 errors | [17](results/17-benchmark-warm-reused.txt) (script: `tests/bench_stats.py`) |
 | **End to end on real hardware** (ESP32 → Pi → laptop), all nine names. The silent downgrade is refused by the device's must-be-secure list | [14](results/14-esp32-via-pi-verdicts.txt), [16](results/16-esp32-all-zones-via-pi.txt) (first run: [07](results/07-esp32-dot-verdicts.txt)) |
 
-Measured: mutual-TLS handshake about **1.7 to 2.1 s** on the ESP32 (once per connection); query **10 to 20 ms** with a warm gateway cache, **69 to 493 ms** cold; firmware **849 KB** flash, **38 KB** static RAM.
+Measured on the ESP32: mutual-TLS handshake **1.7 to 2.1 s** (once per connection); query **median 12.7 ms, p95 38 ms** with a warm gateway cache, **69 to 493 ms** cold; firmware **849 KB** flash (55% of the app partition), **38 KB** static RAM.
+The full list of 21 test cases is in [`docs/testing.md`](docs/testing.md).
 
 ## Limits
 
@@ -88,7 +94,7 @@ Measured: mutual-TLS handshake about **1.7 to 2.1 s** on the ESP32 (once per con
 | The gateway IP is compiled into the firmware | it avoids DHCP/DNS redirection, but a changed network means a rebuild |
 | A rogue gateway causes denial of service, not forged answers | the device goes offline (fail closed) |
 | The Pi has no battery clock | validation depends on the Pi's time being right after boot |
-| Benchmarks | warm/cold numbers above are single runs. A 50-100 run benchmark, a plain-UDP baseline and an on-device crypto cost estimate are **planned, not done** |
+| Benchmarks | one device, one warm run of 450 queries and a small cold run. The firmware for a plain-UDP baseline, on-device crypto cost, SNTP and key pinning is built (`bench-udp`, `crypto-bench`, `sntp`, `pin`) but **not yet measured** |
 
 ## Repository layout
 
@@ -102,7 +108,11 @@ Measured: mutual-TLS handshake about **1.7 to 2.1 s** on the ESP32 (once per con
 | `lab/dnssec.clab.yml` | the Containerlab topology (mode 1) |
 | `client/esp32-1/` | the ESP32 firmware (ESP-IDF via PlatformIO) |
 | `attacks/rogue-gateway/` | the fake-gateway stunnel config |
+| `tests/e2e.sh` | PASS/FAIL checks of the gateway (modes 1 and 2) |
+| `tests/setup-lab.sh` | builds mode 1 on a clean clone (`--dry-run` first) |
+| `tests/bench_stats.py` | mean, median and p95 of the ESP32 benchmark lines |
 | `tests/make-fakeca.sh` | builds an attacker's fake CA (outside the repo) |
+| `docs/` | figures, slides and `testing.md` |
 | `results/` | the evidence: raw outputs with their conditions |
 
 ## Run it
@@ -112,6 +122,8 @@ You need your own PKI: the committed `.crt` files belong to the authors' CA and 
 **Tools used:** Docker 29, Containerlab 0.82, Knot 3.6.2, Unbound 1.25.2 (Pi: 1.26.2), stunnel 5.76 (Pi: 5.74), OpenSSL 3.5, PlatformIO 6.1 with ESP-IDF (ESP32-S3).
 
 ### Mode 1: everything in containers
+
+On a clean clone, `tests/setup-lab.sh --dry-run` prints every step below; `tests/setup-lab.sh` runs them and then `tests/e2e.sh`. The steps by hand:
 
 ```bash
 # 1. PKI (P-256)
