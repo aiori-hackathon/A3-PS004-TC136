@@ -2,11 +2,15 @@
 
 Team Astro · A3-PS004-TC136 · AIORI-3, PS-004
 
+**[Watch the demo](https://youtu.be/mjCDTVKZ9BE)**
+
 Your smart bulb will believe anything. Plain DNS comes with no proof, and a bulb comes with no suspicion.
 
 DNSSEC fixes that, but checking signatures is too much work for a tiny chip. So a Raspberry Pi does the checking and tells the ESP32 one bit: `AD`, "I checked, it's fine". The ESP32 only believes that bit over mutual TLS. No papers, no conversation.
 
 It's gateway-assisted, not end-to-end: the ESP32 trusts its gateway.
+
+![The ESP32 and the Raspberry Pi on the desk, in front of the architecture diagram](docs/readme/desk.jpg)
 
 ## Watch it say no
 
@@ -28,6 +32,8 @@ Real output from the ESP32. Two good answers, seven refusals.
 `unknownalg` is the sneaky one. The gateway sees nothing wrong, so only the ESP32's own must-be-secure list catches it.
 
 ## Architecture
+
+![Close-up of the ESP32-S3 and the Raspberry Pi Zero 2 W](docs/readme/boards.jpg)
 
 ![Mode 2: ESP32 to stunnel and Unbound on a Raspberry Pi, then Knot on the laptop](docs/fig-hardware.png)
 
